@@ -50,7 +50,7 @@ and present stats in a human readable way.
 
 To use the same dev environment as us, you'll want to run these commands:
 ```sh
-pip install .[dev]
+pip install -e .[dev]
 pre-commit install
 ```
 
