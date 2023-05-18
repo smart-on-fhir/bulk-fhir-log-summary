@@ -18,22 +18,32 @@ and present stats in a human readable way.
 ## Example Output
 
 ```
-┌────────────────┬──────────────────────────┐
-│ Params:        │ _type: MedicationRequest │
-│ Run:           │ 05/15/23 17:19:02        │
-│ Count:         │ 347,593 (1,177MB)        │
-│ Time/Resource: │ 11.6ms                   │
-│ Time/Megabyte: │ 3.4s                     │
-│ Total Time:    │ 1.1h                     │
-└────────────────┴──────────────────────────┘
 ┌────────────────┬──────────────────┐
-│ Params:        │ _type: Patient   │
+│ Params:        │ _type: Condition │
 │ Run:           │ 2 runs, averaged │
-│ Count:         │ 4,376 (32MB)     │
-│ Time/Resource: │ 42.6ms           │
+│ Count:         │ 97,117 (132MB)   │
+│ Time/Resource: │ 7.9ms            │
 │ Time/Megabyte: │ 5.8s             │
-│ Total Time:    │ 3.1m             │
+│ Total Time:    │ 12.8m            │
 └────────────────┴──────────────────┘
+┌────────────────┬───────────────────────────────────┐
+│ Params:        │ _since: 2023-02-15T00:00:00+00:00 │
+│                │ _type: Condition                  │
+│ Run:           │ 05/17/23 16:59:45                 │
+│ Count:         │ 46 (0MB)                          │
+│ Time/Resource: │ 13.3s                             │
+│ Time/Megabyte: │ 2.6h                              │
+│ Total Time:    │ 10.2m                             │
+└────────────────┴───────────────────────────────────┘
+┌────────────────┬──────────────────────────────────────────────────────┐
+│ Params:        │ _type: Condition,Encounter,MedicationRequest,Patient │
+│ Run:           │ 05/15/23 19:47:13                                    │
+│ Count:         │ 630,056 (2,703MB)                                    │
+│ Time/Patient:  │ 1.3s (4,376 patients)                                │
+│ Time/Resource: │ 8.8ms                                                │
+│ Time/Megabyte: │ 2s                                                   │
+│ Total Time:    │ 1.5h                                                 │
+└────────────────┴──────────────────────────────────────────────────────┘
 ```
 
 ## Contributing
