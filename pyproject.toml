@@ -1,0 +1,47 @@
+[project]
+name = "bulk-fhir-log-summary"
+description = " Summarizes stats from bulk FHIR logs"
+readme = "README.md"
+
+requires-python = ">= 3.9"
+dependencies = [
+    "rich",
+]
+
+authors = [
+  { name="Michael Terry", email="michael.terry@childrens.harvard.edu" },
+]
+license = { text="Apache License 2.0" }
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: System :: Logging",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/smart-on-fhir/bulk-fhir-log-summary"
+
+[project.scripts]
+bulk-fhir-log-summary = "bulk_fhir_log_summary.cli:main_cli"
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.sdist]
+include = [
+    "LICENSE",
+]
+exclude = [
+    "**/.pytest_cache",
+]
+
+[tool.black]
+line-length = 120
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+]
