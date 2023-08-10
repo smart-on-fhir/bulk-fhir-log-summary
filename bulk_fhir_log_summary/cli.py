@@ -56,6 +56,8 @@ def parse_log_row(row: dict, run: Optional[BulkRun]) -> BulkRun:
         run.statuses.append(row)
     elif event_id == "status_complete":
         set_single_value(run, "status_complete", row)
+    elif event_id == "status_error":
+        pass  # ignore for now
     elif event_id == "download_request":
         url = row["eventDetail"]["fileUrl"]
         run.downloads[url] = BulkDownload(row)
@@ -115,6 +117,10 @@ def count_patients(run: BulkRun) -> int:
 def collate_run(run: BulkRun) -> Optional[RunStats]:
     if run.parse_error:
         print(f"Could not understand export {run.export_id}: {run.parse_error}")
+        return None
+
+    if run.kickoff is None:
+        # A resumed download, but the logs don't have enough info to stitch it together with the missing kickoff :(
         return None
 
     if run.status_complete is None:
