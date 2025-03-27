@@ -2,8 +2,11 @@
 
 import argparse
 import datetime
+import glob
 import json
-from typing import List, Optional
+import os
+import sys
+from typing import Iterator, Optional
 
 import rich.table
 
@@ -63,10 +66,16 @@ def parse_log_row(row: dict, run: Optional[BulkRun]) -> BulkRun:
         run.downloads[url] = BulkDownload(row)
     elif event_id == "download_complete":
         url = row["eventDetail"]["fileUrl"]
-        set_single_value(run.downloads[url], "complete", row)
+        if url not in run.downloads:
+            run.parse_error = "Missing download request"
+        else:
+            set_single_value(run.downloads[url], "complete", row)
     elif event_id == "download_error":
         url = row["eventDetail"]["fileUrl"]
-        set_single_value(run.downloads[url], "error", row)
+        if url not in run.downloads:
+            run.parse_error = "Missing download request"
+        else:
+            set_single_value(run.downloads[url], "error", row)
     elif event_id == "export_complete":
         set_single_value(run, "export_complete", row)
     else:
@@ -75,15 +84,27 @@ def parse_log_row(row: dict, run: Optional[BulkRun]) -> BulkRun:
     return run
 
 
-def parse_log_file(path: str) -> List[BulkRun]:
+def read_log_files(path: str) -> Iterator[dict]:
+    if os.path.isdir(path):
+        files = sorted(glob.glob(os.path.join(path, "log*.ndjson")), reverse=True)
+        if not files:
+            sys.exit(f"Could not find log*.ndjson files in folder {path}")
+    else:
+        files = [path]
+
+    for file in files:
+        with open(file, encoding="utf8") as f:
+            for line in f:
+                yield json.loads(line)
+
+
+def parse_log_files(path: str) -> list[BulkRun]:
     runs = {}
 
-    with open(path, "r", encoding="utf8") as f:
-        for line in f:
-            row = json.loads(line)
-            export_id = row["exportId"]
-            run = parse_log_row(row, runs.get(export_id))
-            runs[export_id] = run
+    for row in read_log_files(path):
+        export_id = row["exportId"]
+        run = parse_log_row(row, runs.get(export_id))
+        runs[export_id] = run
 
     return list(runs.values())
 
@@ -161,7 +182,7 @@ def collate_run(run: BulkRun) -> Optional[RunStats]:
     return stats
 
 
-def merge_stats(runs: List[RunStats]) -> List[RunStats]:
+def merge_stats(runs: list[RunStats]) -> list[RunStats]:
     """Takes every run stat block that has the same params and merge them"""
     mapping = {}
 
@@ -185,7 +206,7 @@ def merge_stats(runs: List[RunStats]) -> List[RunStats]:
     return list(mapping.values())
 
 
-def sort_stats(runs: List[RunStats]) -> List[RunStats]:
+def sort_stats(runs: list[RunStats]) -> list[RunStats]:
     # Sort by _type (because if we do extra filtering like _typeFilter,
     # it's easier to see them close together)
     def sort_key(run: RunStats) -> str:
@@ -260,7 +281,7 @@ def print_run(run: RunStats, *, show_group: bool = True) -> bool:
     return True
 
 
-def print_runs(runs: List[RunStats], *, show_group: bool = True) -> None:
+def print_runs(runs: list[RunStats], *, show_group: bool = True) -> None:
     for run in runs:
         print_run(run, show_group=show_group)
 
@@ -272,14 +293,14 @@ def print_runs(runs: List[RunStats], *, show_group: bool = True) -> None:
 
 def main_cli() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("log_file", metavar="/path/to/log/file")
+    parser.add_argument("log_files", metavar="/path/to/log/file-or-folder")
     parser.add_argument(
         "--merge", action=argparse.BooleanOptionalAction, default=True, help="Whether to merge similar exports"
     )
     parser.add_argument("--only-errors", action="store_true", default=False, help="Show only the exports with errors")
 
     args = parser.parse_args()
-    runs = parse_log_file(args.log_file)
+    runs = parse_log_files(args.log_files)
 
     stats = list(filter(None, map(collate_run, runs)))
 
